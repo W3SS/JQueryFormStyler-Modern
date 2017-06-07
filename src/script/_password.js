@@ -1,68 +1,119 @@
-var passwordOutput = function( el )
+let Password = 
+( function( )
 {
-	//
-	var button = $( '<div class="jq-password__switch">' + opt.passwordSwitchHtml + '</div>' ),
-		password = $( '<div class="jq-password">' ).append( button ),
-		customButton = ( button.children( 'button' ).length > 0 ?  button.children( 'button' ) : button );
-	
-	// Есть ли текст в блоке, и нужно ли его ставить
-	if( customButton.html( ) === '' && opt.passwordShow !== '' )
-	{
-		customButton.html( opt.passwordShow );
-					
-		// Если был вставлен только текст
-		if( button.children( 'button' ).length <= 0 )
-		{
-			button.addClass( 'jq-password__switch-text' );
-		}	
-	}
-
-	//
-	el.after( password ).prependTo( password );
-
-	// Необходимо "перерисовать" контрол
-	password.on( 'repaint', function( )
-	{
-		// Активация/деактивация
-		password.toggleClass( 'disabled', el.is( ':disabled' ) );
+	let Password = function( element, options, locale ) 
+	{		
+		//
+		this.element = element;
+		this.options = options;
+		this.locale = locale;
+				
+		//
+		const customButton = $( '<div class="jq-password__switch">' + ( this.options.switchHTML || '' ) + '</div>' );
 		
-		// Активация/деактивация кнопки
-		customButton.prop( 'disabled', el.is( ':disabled' ) );
-	} )	
-	// Реакция на клик по кнопке
-	.on( 'click', '.jq-password__switch', function( ) 
-	{
-		var switcher = $( this ),
-			wrapper = switcher.closest( '.jq-password' ),
-			seen = wrapper.is( '.jq-password_seen' );
+		//
+		this.password = $( '<div class="jq-password">' ).append( customButton ),
+		this.button = ( customButton.children( 'button' ).length > 0 ? customButton.children( 'button' ) : customButton );
 
-		// Добавление/удаление класса
-		wrapper.toggleClass( 'jq-password_seen', !seen );
-
-		// Меняем текст
-		if( opt.passwordShow !== '' && opt.passwordHide !== '' )
+		// Есть ли текст в блоке, и нужно ли его ставить
+		if( this.button.html( ) === '' && locale[ 'show' ] !== '' )
 		{
-			customButton.html( seen ? opt.passwordShow : opt.passwordHide );
+			this.button.html( locale[ 'show' ] );
+
+			// Если был вставлен только текст
+			if( customButton.children( 'button' ).length <= 0 )
+			{
+				customButton.addClass( 'jq-password__switch-text' );
+			}	
 		}
 		
 		//
-		el.attr( 'type', ( seen ? 'password' : 'text' ) );
-	} );
+		this.element.after( this.password ).prependTo( this.password );
+		
+		//
+		this.setEvents( )
+			.repaint( );
+	};
 	
-	// Фокусировка
-	el.on( 'focus.' + pluginName, function( )
+	Password.prototype = 
 	{
-		password.addClass( 'focused' );
-	} )
-	// Расфокусировка
-	.on( 'blur.' + pluginName, function( )
-	{
-		password.removeClass( 'focused' );
-	} );
-	
-	// Мы установили стиль, уведомляем об изменении
-	password.triggerHandler( 'repaint' );
-}; 
+		setEvents: function( )
+		{
+			const locale = this.locale,
+				element = this.element,
+				password = this.password,
+				button = this.button;
+			
+			// Необходимо "перерисовать" контрол
+			password.on( 'repaint', function( )
+			{
+				// Активация/деактивация
+				password.toggleClass( 'disabled', element.is( ':disabled' ) );
 
-// Стилизируем компонент
-passwordOutput( element );
+				// Активация/деактивация кнопки
+				button.prop( 'disabled', element.is( ':disabled' ) );
+			} )	
+			// Реакция на клик по кнопке
+			.on( 'click', '.jq-password__switch', function( ) 
+			{
+				const switcher = $( this ),
+					wrapper = switcher.closest( '.jq-password' ),
+					seen = wrapper.is( '.jq-password_seen' );
+
+				// Добавление/удаление класса
+				wrapper.toggleClass( 'jq-password_seen', !seen );
+
+				// Меняем текст
+				if( locale[ 'show' ] !== '' && locale[ 'hide' ] !== '' )
+				{
+					button.html( seen ? locale[ 'show' ] : locale[ 'hide' ] );
+				}
+
+				//
+				element.attr( 'type', ( seen ? 'password' : 'text' ) );
+			} );
+
+			// Фокусировка
+			element.on( 'focus.' + pluginName, function( )
+			{
+				password.addClass( 'focused' );
+			} )
+			// Расфокусировка
+			.on( 'blur.' + pluginName, function( )
+			{
+				password.removeClass( 'focused' );
+			} );
+			
+			return this;
+		},
+		
+		// Перерисовка
+		repaint: function( )
+		{
+			const element = this.element,
+				password = this.password,
+				button = this.button;
+			
+			// Активация/деактивация
+			password.toggleClass( 'disabled', element.is( ':disabled' ) );
+
+			// Активация/деактивация кнопки
+			button.prop( 'disabled', element.is( ':disabled' ) );
+			
+			return this;
+		},
+		
+		// Уничтожение
+		destroy: function( )
+		{
+			const element = this.element;
+			
+			element.off( '.' + pluginName + ', refresh' )
+					.closest( '.jq-password' ).before( element ).remove( );
+			
+			return this;
+		}
+	}
+	
+	return Password;
+} )( );

@@ -19,6 +19,7 @@ var gulp = require( 'gulp' ),
 	sass = require( 'gulp-sass' ),
 	cssmin = require( 'gulp-minify-css' ),
 	postcss = require( 'gulp-postcss' ),
+	babel = require( 'gulp-babel' ),
 	autoprefixer = require( 'autoprefixer' );
 
 /* * * * * * * * * * * * * *
@@ -55,15 +56,15 @@ var bundles =
 	dev: {
 		fileSuffix: '',
 		compress: false,
-		themePath: 'theme/',
+		themePath: 'style/',
 		mainPath: ''
 	},
 	
 	min: {
 		fileSuffix: '.min',
 		compress: true,
-		themePath: 'theme.min/',
-		mainPath: 'min/'
+		themePath: 'style/',
+		mainPath: ''
 	}
 };
 
@@ -130,6 +131,7 @@ gulp.task( 'js:build', function( )
 				.pipe( replace( '%pluginName%', params.pluginName ) )
 				.pipe( rigger( ) ) // Подстановка исходного кода файлов на место переменных
 				.pipe( header( banner, { pkg : pkg } ) ) // Установка хидера
+				.pipe( babel( {	presets: [ 'es2015' ] } ) )
 				.pipe( gulpif( bundle.compress, uglify( { mangle: true, compress: false } ) ) ) //
 				.pipe( rename( fileName ) ) // Переименовываем
 				.pipe( gulp.dest( path ) );
